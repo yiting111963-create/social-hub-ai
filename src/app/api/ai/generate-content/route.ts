@@ -310,7 +310,10 @@ export async function POST(req: NextRequest) {
         const variants = await generateWithGemini(topic, platforms);
         return NextResponse.json({ postId: randomUUID(), variants });
       } catch (aiError) {
-        console.error('Gemini content FULL error:', aiError);
+        const msg = aiError instanceof Error ? aiError.message : String(aiError);
+        console.error('Gemini content FULL error:', msg);
+        // Temporarily return error details for debugging
+        return NextResponse.json({ debug_error: msg, postId: randomUUID(), variants: generateFallbackContent(topic, platforms) });
       }
     }
 
