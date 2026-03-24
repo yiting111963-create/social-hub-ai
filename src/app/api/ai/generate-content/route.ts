@@ -38,7 +38,7 @@ async function generateWithGemini(topic: string, platforms: Platform[]) {
 }`;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { responseMimeType: 'application/json' },
   });
@@ -311,9 +311,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ postId: randomUUID(), variants });
       } catch (aiError) {
         const msg = aiError instanceof Error ? aiError.message : String(aiError);
-        console.error('Gemini content FULL error:', msg);
-        // Temporarily return error details for debugging
-        return NextResponse.json({ debug_error: msg, postId: randomUUID(), variants: generateFallbackContent(topic, platforms) });
+        console.error('Gemini content error:', msg);
       }
     }
 
