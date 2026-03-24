@@ -3,9 +3,9 @@ import { randomUUID } from 'crypto';
 import type { Platform } from '@/types';
 
 async function generateWithGemini(topic: string, platforms: Platform[]) {
-  // Use the newer @google/genai SDK which is more stable
   const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY! });
+  console.log('Calling Gemini, key prefix:', process.env.GOOGLE_GEMINI_API_KEY?.slice(0, 8));
 
   const platformSpecs = platforms
     .map((p) => {
@@ -38,14 +38,15 @@ async function generateWithGemini(topic: string, platforms: Platform[]) {
 }`;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: prompt,
+    model: 'gemini-1.5-flash',
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
     config: { responseMimeType: 'application/json' },
   });
 
   const text = response.text ?? '';
+  console.log('Gemini raw response (first 200):', text.slice(0, 200));
   // Strip markdown code fences if present
-  const clean = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+  const clean = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
   return JSON.parse(clean);
 }
 
@@ -309,7 +310,7 @@ export async function POST(req: NextRequest) {
         const variants = await generateWithGemini(topic, platforms);
         return NextResponse.json({ postId: randomUUID(), variants });
       } catch (aiError) {
-        console.warn('Gemini content error, using fallback:', (aiError as Error).message);
+        console.error('Gemini content FULL error:', aiError);
       }
     }
 
