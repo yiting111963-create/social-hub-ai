@@ -39,11 +39,13 @@ export function ReviewPanel() {
         })}
       </div>
 
-      <div className="p-4 space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto">
-        {/* Media viewer: uploaded image/video player OR AI-generated image switcher */}
-        <MediaViewer />
-
+      {/* Scrollable content — no height cap so user sees everything without excessive scrolling */}
+      <div className="p-4 space-y-4">
+        {/* Platform mockup preview — always the first thing you see */}
         <PlatformPreview platform={activePreviewPlatform} />
+
+        {/* Media viewer (uploaded image/video OR AI-generated images) below preview */}
+        <MediaViewer />
 
         {variants[activePreviewPlatform] && (
           <EditableVariant platform={activePreviewPlatform} />

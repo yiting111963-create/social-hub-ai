@@ -12,7 +12,7 @@ export function PlatformPreview({ platform }: Props) {
   const imageUrl =
     uploadedMedia[0]?.blobUrl ||
     aiImageUrls[selectedAiImageIndex] ||
-    `https://picsum.photos/seed/${platform}123/400/300`;
+    `https://source.unsplash.com/400x400/?lifestyle&sig=${platform}`;
 
   if (!variant) return null;
 
@@ -28,6 +28,15 @@ export function PlatformPreview({ platform }: Props) {
   }
 }
 
+// Renders text preserving newlines from the caption
+function CaptionText({ text, className = '' }: { text: string; className?: string }) {
+  return (
+    <span className={`whitespace-pre-line leading-relaxed ${className}`}>
+      {text}
+    </span>
+  );
+}
+
 function InstagramPreview({ variant, imageUrl }: { variant: PostVariant; imageUrl: string }) {
   return (
     <div className="bg-gray-50 rounded-xl p-3">
@@ -36,7 +45,7 @@ function InstagramPreview({ variant, imageUrl }: { variant: PostVariant; imageUr
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400" />
           <div>
             <p className="text-xs font-semibold">my_instagram</p>
-            <p className="text-xs text-gray-400">Sponsored</p>
+            <p className="text-xs text-gray-400">剛剛</p>
           </div>
           <span className="ml-auto text-gray-400 text-lg">⋯</span>
         </div>
@@ -47,12 +56,9 @@ function InstagramPreview({ variant, imageUrl }: { variant: PostVariant; imageUr
             <span>🤍</span><span>💬</span><span>✈️</span>
             <span className="ml-auto">🔖</span>
           </div>
-          <p className="text-xs leading-relaxed">
+          <p className="text-xs">
             <span className="font-semibold">my_instagram </span>
-            <span className="text-gray-700">
-              {variant.caption?.substring(0, 100)}
-              {(variant.caption?.length || 0) > 100 ? '... more' : ''}
-            </span>
+            <CaptionText text={variant.caption?.substring(0, 150) + ((variant.caption?.length || 0) > 150 ? '… 更多' : '')} />
           </p>
           {variant.hashtags && variant.hashtags.length > 0 && (
             <p className="text-xs text-blue-500 mt-1">{variant.hashtags.slice(0, 5).join(' ')}</p>
@@ -73,24 +79,23 @@ function FacebookPreview({ variant, imageUrl }: { variant: PostVariant; imageUrl
           </div>
           <div>
             <p className="text-xs font-semibold">My Facebook Page</p>
-            <p className="text-xs text-gray-400">Just now · 🌐</p>
+            <p className="text-xs text-gray-400">剛剛 · 🌐</p>
           </div>
         </div>
-        <p className="px-3 pb-2 text-xs text-gray-700 leading-relaxed">
-          {variant.caption?.substring(0, 150)}
-          {(variant.caption?.length || 0) > 150 ? '... See more' : ''}
+        <p className="px-3 pb-2 text-xs text-gray-700">
+          <CaptionText text={variant.caption?.substring(0, 200) + ((variant.caption?.length || 0) > 200 ? '… 查看更多' : '')} />
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={imageUrl} alt="Post" className="w-full aspect-video object-cover" />
         <div className="p-2 flex gap-1 border-t border-gray-100">
           <button className="flex-1 text-xs text-gray-500 flex items-center justify-center gap-1 py-1.5 rounded hover:bg-gray-50">
-            👍 Like
+            👍 讚
           </button>
           <button className="flex-1 text-xs text-gray-500 flex items-center justify-center gap-1 py-1.5 rounded hover:bg-gray-50">
-            💬 Comment
+            💬 留言
           </button>
           <button className="flex-1 text-xs text-gray-500 flex items-center justify-center gap-1 py-1.5 rounded hover:bg-gray-50">
-            ↗️ Share
+            ↗️ 分享
           </button>
         </div>
       </div>
@@ -109,10 +114,10 @@ function ThreadsPreview({ variant }: { variant: PostVariant }) {
           <div className="flex-1">
             <div className="flex items-center gap-1.5">
               <p className="text-xs font-semibold">my_threads</p>
-              <p className="text-xs text-gray-400">· now</p>
+              <p className="text-xs text-gray-400">· 剛剛</p>
             </div>
-            <p className="text-xs text-gray-800 mt-1 leading-relaxed">
-              {variant.caption?.substring(0, 250)}
+            <p className="text-xs text-gray-800 mt-1">
+              <CaptionText text={variant.caption?.substring(0, 300) || ''} />
             </p>
           </div>
         </div>
@@ -129,7 +134,8 @@ function ThreadsPreview({ variant }: { variant: PostVariant }) {
 
 function YouTubePreview({ variant, imageUrl }: { variant: PostVariant; imageUrl: string }) {
   return (
-    <div className="bg-gray-50 rounded-xl p-3">
+    <div className="bg-gray-50 rounded-xl p-3 space-y-3">
+      {/* Thumbnail card mockup */}
       <div className="bg-white rounded-xl overflow-hidden border border-gray-200 max-w-xs mx-auto shadow-sm">
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -151,10 +157,29 @@ function YouTubePreview({ variant, imageUrl }: { variant: PostVariant; imageUrl:
             <p className="text-xs font-semibold line-clamp-2">
               {variant.title || variant.caption?.substring(0, 80)}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">My Channel · 0 views · just now</p>
+            <p className="text-xs text-gray-500 mt-0.5">My Channel · 0 次觀看 · 剛剛</p>
           </div>
         </div>
       </div>
+
+      {/* Video script / description panel */}
+      {variant.description && (
+        <div className="bg-white rounded-xl border border-gray-200 max-w-xs mx-auto p-3 shadow-sm">
+          <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1">
+            📄 影片說明 / 腳本草稿
+          </p>
+          <p className="text-xs text-gray-700">
+            <CaptionText text={variant.description} />
+          </p>
+          {variant.hashtags && variant.hashtags.length > 0 && (
+            <p className="text-xs text-blue-500 mt-2">{variant.hashtags.join(' ')}</p>
+          )}
+        </div>
+      )}
+
+      <p className="text-center text-xs text-gray-400">
+        💡 Demo 模式 — 實際上傳影片後可預覽播放
+      </p>
     </div>
   );
 }
