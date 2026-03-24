@@ -34,21 +34,20 @@ export function useAIGeneration() {
       if (uploadedMedia.length === 0) {
         store.setGenerationStatus('generating-image', 60);
         try {
-          // Generate imageCount images in parallel
-          const imagePromises = Array.from({ length: imageCount }, (_, i) =>
-            fetch('/api/ai/generate-image', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ topic, aspectRatio: '1:1', seed: i }),
-            })
-              .then((r) => (r.ok ? r.json() : null))
-              .then((d) => d?.imageUrl as string | null)
-          );
-          const results = await Promise.all(imagePromises);
-          imageUrls = results.filter((u): u is string => Boolean(u));
-          store.setAiImageUrls(imageUrls);
+          // Single API call requesting all images at once
+          const imageRes = await fetch('/api/ai/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic, aspectRatio: '1:1', count: imageCount }),
+          });
+          if (imageRes.ok) {
+            const data = await imageRes.json();
+            // Prefer imageUrls array (multiple), fall back to single imageUrl
+            imageUrls = data.imageUrls ?? (data.imageUrl ? [data.imageUrl] : []);
+            store.setAiImageUrls(imageUrls);
+          }
         } catch {
-          // Image generation is non-fatal
+          // Non-fatal
         }
       }
 
