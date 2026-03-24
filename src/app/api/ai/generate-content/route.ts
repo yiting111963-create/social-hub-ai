@@ -308,15 +308,14 @@ export async function POST(req: NextRequest) {
     if (isRealKey) {
       try {
         const variants = await generateWithGemini(topic, platforms);
-        return NextResponse.json({ postId: randomUUID(), variants });
+        return NextResponse.json({ postId: randomUUID(), variants, _ai: true });
       } catch (aiError) {
         const msg = aiError instanceof Error ? aiError.message : String(aiError);
-        console.error('Gemini content error:', msg);
+        return NextResponse.json({ postId: randomUUID(), variants: generateFallbackContent(topic, platforms), _ai_error: msg });
       }
     }
 
-    await new Promise((r) => setTimeout(r, 800));
-    return NextResponse.json({ postId: randomUUID(), variants: generateFallbackContent(topic, platforms) });
+    return NextResponse.json({ postId: randomUUID(), variants: generateFallbackContent(topic, platforms), _ai: false, _key: !!apiKey });
   } catch (error) {
     console.error('Generate content error:', error);
     return NextResponse.json({ error: '內容生成失敗，請再試一次' }, { status: 500 });
