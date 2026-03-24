@@ -37,11 +37,25 @@ async function generateWithGemini(topic: string, platforms: Platform[]) {
   ${platformSpecs}
 }`;
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: { responseMimeType: 'application/json' },
-  });
+  // Try models in order — each has its own quota bucket
+  const MODELS = ['gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-flash'];
+  let response;
+  let lastErr: unknown;
+  for (const model of MODELS) {
+    try {
+      response = await ai.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: { responseMimeType: 'application/json' },
+      });
+      console.log('Gemini success with model:', model);
+      break;
+    } catch (e) {
+      console.warn(`Model ${model} failed:`, (e as Error).message?.slice(0, 80));
+      lastErr = e;
+    }
+  }
+  if (!response) throw lastErr;
 
   const text = response.text ?? '';
   console.log('Gemini raw response (first 200):', text.slice(0, 200));
